@@ -1,12 +1,28 @@
-# Laravel Backend — Smart Agri-Advisory Platform
+<div align="center">
 
-Source code for the Laravel 11 web application, rebuilt against the
-**26-table normalized database schema** (see `docs/Database_Schema.md`
-if you added it, or your original schema PDF). `vendor/` and
-`composer.lock` are **not** included since this sandbox has no
-Packagist access — run `composer install` once locally.
+# 🖥️ Laravel Backend — Smart Agri-Advisory Platform
 
-## Setup
+### RBAC · MySQL · Bengali UI — কৃষি সুপারিশ ওয়েব অ্যাপ্লিকেশন
+
+![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-26%20Tables-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![RBAC](https://img.shields.io/badge/Auth-RBAC-9C27B0?style=for-the-badge)
+![Blade](https://img.shields.io/badge/UI-Bengali%20%F0%9F%87%A7%F0%9F%87%A9-006A4E?style=for-the-badge)
+
+</div>
+
+---
+
+## 📌 এক নজরে
+
+এই ফোল্ডারে আছে **Laravel 11** দিয়ে বানানো পুরো ওয়েব অ্যাপ্লিকেশন — ২৬-টেবিলের normalized ডেটাবেজ স্কিমার উপর ভিত্তি করে তৈরি (দেখুন `docs/Database_Schema.md`)। এখানে RBAC অথেন্টিকেশন, ফার্ম প্রোফাইল, সুপারিশ ম্যানেজমেন্ট, Extension Officer টুলস, Supplier মডিউল এবং Admin প্যানেল — সবকিছুই আছে।
+
+> ⚠️ `vendor/` এবং `composer.lock` অন্তর্ভুক্ত নেই কারণ এই sandbox-এ Packagist অ্যাক্সেস নেই। প্রথমবার লোকালি `composer install` চালাতে হবে।
+
+---
+
+## 🚀 সেটআপ
 
 ```bash
 cd laravel-backend
@@ -14,70 +30,105 @@ composer install
 cp .env.example .env
 php artisan key:generate
 
-# Create a MySQL database named agri_advisory (or edit .env), then:
+# MySQL-এ agri_advisory নামে একটি ডেটাবেজ তৈরি করুন (অথবা .env এডিট করুন), তারপর:
 php artisan migrate --seed
 
-# Point this app at your running Flask ML service (see ../ml-service)
-# ML_SERVICE_URL is already set in .env.example
+# ../ml-service এ চলমান Flask ML সার্ভিসের সাথে কানেক্ট করুন
+# ML_SERVICE_URL ইতিমধ্যে .env.example এ সেট করা আছে
 
-php artisan serve   # -> http://localhost:8000
+php artisan serve   # ➜ http://localhost:8000
 ```
 
-## Demo accounts (from the seeder)
+---
 
-| Role               | Email                        | Password    |
-|--------------------|-------------------------------|-------------|
-| Admin              | admin@agriadvisory.test       | password123 |
-| Farmer             | farmer@agriadvisory.test      | password123 |
-| Extension Officer  | officer@agriadvisory.test     | password123 |
-| Supplier           | supplier@agriadvisory.test    | password123 (pre-verified) |
+## 🔑 ডেমো অ্যাকাউন্ট (Seeder থেকে)
 
-The seeder also creates the 6 `climate_zones` and 15 `crops` reference
-rows — the crop names match `ml-service/generate_data.py` exactly, so
-`Crop::findByNameOrCreate()` in `app/Models/Crop.php` can resolve every
-crop name the ML service returns straight to a `crops.id`.
+<div align="center">
 
-## Schema → code map (26 tables)
+| রোল | ইমেইল | পাসওয়ার্ড | স্ট্যাটাস |
+|:---:|---|:---:|:---:|
+| 🛡️ **Admin** | `admin@agriadvisory.test` | `password123` | ✅ Active |
+| 🌾 **Farmer** | `farmer@agriadvisory.test` | `password123` | ✅ Active |
+| 👨‍🌾 **Extension Officer** | `officer@agriadvisory.test` | `password123` | ✅ Active |
+| 🚚 **Supplier** | `supplier@agriadvisory.test` | `password123` | ✅ Pre-verified |
 
-| Group | Tables | Status in this codebase |
-|---|---|---|
-| Core/Auth | `users` | Fully wired (RBAC, `EnsureRole` middleware) |
-| Reference | `climate_zones`, `crops` | Fully wired + seeded; `crop_calendar` migration included, no UI yet (optional) |
-| Farmer | `farm_profiles` (soil pH/N/P/K live here), `weather_logs` | Fully wired; `weather_logs` used opportunistically for crop recommendation, no OpenWeather cron yet |
-| ML Output | `recommendations`, `fertilizer_recommendations`, `price_forecasts`, `disease_detections` | Fully wired — every ML call from `FarmerController` persists here |
-| Feedback | `recommendation_feedback` | Fully wired |
-| Extension Officer | `officer_verifications`, `officer_zone_assignments`, `officer_overrides`, `advisory_messages`, `alerts`, `training_sessions`, `training_attendees` | Verification + overrides + advisory + alerts + training all wired; `training_attendees` migration only (no registration UI yet) |
-| Supplier | `suppliers`, `products`, `orders`, `order_items`, `inquiries`, `demand_forecasts` | Fully wired |
-| Admin | `admin_logs`, `model_retraining_jobs`, `system_backups`, `analytics_snapshots` | Fully wired — every admin action writes an `admin_logs` row |
+</div>
 
-## RBAC
+Seeder আরও তৈরি করে দেয়: **৬টি `climate_zones`** এবং **১৫টি `crops`** রেফারেন্স রো — ফসলের নামগুলো `ml-service/generate_data.py`-এর সাথে হুবহু মিলে যায়, ফলে `app/Models/Crop.php`-এর `Crop::findByNameOrCreate()` ML সার্ভিস থেকে আসা প্রতিটি ফসলের নামকে সরাসরি `crops.id`-তে রিজলভ করতে পারে।
 
-`users.role` is `farmer | extension_officer | supplier | admin`, enforced by
-`app/Http/Middleware/EnsureRole.php` (aliased `role` in `bootstrap/app.php`).
-New `extension_officer`/`supplier` signups start `status = pending`
-(a `suppliers` row is also created, `verified = false`) and need Admin
-approval — `POST /admin/users/{user}/approve`.
+---
 
-## How this talks to the ML service
+## 🗂️ Schema → Code ম্যাপ (২৬টি টেবিল)
 
-`app/Services/MlService.php` calls the Flask endpoints in
-`ml-service/app.py`. `FarmerController` calls it, resolves the returned
-crop-name string to a `crops.id` via `Crop::findByNameOrCreate()`, and
-writes the result into `recommendations` / `fertilizer_recommendations`
-/ `price_forecasts` / `disease_detections` for history and for Extension
-Officers to review.
+| গ্রুপ | টেবিলসমূহ | স্ট্যাটাস |
+|---|---|:---:|
+| 🔐 **Core/Auth** | `users` | ✅ সম্পূর্ণ (RBAC, `EnsureRole` middleware) |
+| 📚 **Reference** | `climate_zones`, `crops` | ✅ সম্পূর্ণ + সিডেড; `crop_calendar` মাইগ্রেশন আছে, UI নেই (ঐচ্ছিক) |
+| 🌱 **Farmer** | `farm_profiles` (pH/N/P/K এখানেই), `weather_logs` | ✅ সম্পূর্ণ; `weather_logs` সুযোগমতো ব্যবহৃত, এখনো OpenWeather cron নেই |
+| 🤖 **ML Output** | `recommendations`, `fertilizer_recommendations`, `price_forecasts`, `disease_detections` | ✅ সম্পূর্ণ — `FarmerController`-এর প্রতিটি ML কল এখানে সেভ হয় |
+| 💬 **Feedback** | `recommendation_feedback` | ✅ সম্পূর্ণ |
+| 👨‍🌾 **Extension Officer** | `officer_verifications`, `officer_zone_assignments`, `officer_overrides`, `advisory_messages`, `alerts`, `training_sessions`, `training_attendees` | ✅ বেশিরভাগ সম্পূর্ণ; `training_attendees`-এর রেজিস্ট্রেশন UI বাকি |
+| 🚚 **Supplier** | `suppliers`, `products`, `orders`, `order_items`, `inquiries`, `demand_forecasts` | ✅ সম্পূর্ণ |
+| 🛡️ **Admin** | `admin_logs`, `model_retraining_jobs`, `system_backups`, `analytics_snapshots` | ✅ সম্পূর্ণ — প্রতিটি অ্যাডমিন অ্যাকশন `admin_logs`-এ লগ হয় |
 
-## Folder map
+---
+
+## 🛡️ RBAC (Role-Based Access Control)
+
+`users.role` চারটি মান নিতে পারে:
 
 ```
-app/Models/             28 Eloquent models — one per migration
-app/Http/Controllers/    Auth, Farmer, ExtensionOfficer, Supplier, Admin
-app/Http/Middleware/     EnsureRole.php (RBAC)
-app/Services/MlService.php   HTTP client for the Flask ML microservice
-database/migrations/     28 migration files covering all 26 tables, in FK-safe order
-database/seeders/        DatabaseSeeder.php — zones, crops, demo users
-routes/web.php            All routes, grouped by role
-resources/views/          Blade templates (Bengali UI), per role
-public/css/app.css        Styling
-public/js/app.js          Axios helper functions
+farmer  │  extension_officer  │  supplier  │  admin
 ```
+
+`app/Http/Middleware/EnsureRole.php` এই রোলগুলো এনফোর্স করে (`bootstrap/app.php`-এ `role` নামে alias করা)।
+
+> 🔔 নতুন `extension_officer` / `supplier` সাইনআপগুলো `status = pending` দিয়ে শুরু হয় (একটি `suppliers` রো-ও তৈরি হয়, `verified = false`) — অ্যাডমিনের অনুমোদন লাগে:
+> `POST /admin/users/{user}/approve`
+
+---
+
+## 🔌 ML সার্ভিসের সাথে সংযোগ
+
+```
+Laravel (FarmerController)
+        │
+        ▼
+app/Services/MlService.php  ──HTTP──▶  ml-service/app.py (Flask)
+        │
+        ▼
+Crop::findByNameOrCreate()  →  crops.id রিজলভ
+        │
+        ▼
+recommendations / fertilizer_recommendations
+/ price_forecasts / disease_detections  ← হিস্ট্রি হিসেবে সংরক্ষিত
+```
+
+এই ডেটাই পরে Extension Officer-রা review ও override করতে পারেন।
+
+---
+
+## 📁 ফোল্ডার ম্যাপ
+
+```
+app/Models/                 28 Eloquent মডেল — প্রতিটি মাইগ্রেশনের জন্য একটি
+app/Http/Controllers/       Auth, Farmer, ExtensionOfficer, Supplier, Admin
+app/Http/Middleware/        EnsureRole.php  (RBAC)
+app/Services/MlService.php  Flask ML মাইক্রোসার্ভিসের জন্য HTTP ক্লায়েন্ট
+database/migrations/        26 টেবিলের জন্য 28টি মাইগ্রেশন ফাইল, FK-safe অর্ডারে
+database/seeders/           DatabaseSeeder.php — zones, crops, ডেমো ইউজার
+routes/web.php               সব রুট, রোল অনুযায়ী গ্রুপড
+resources/views/             Blade টেমপ্লেট (বাংলা UI), রোল অনুযায়ী
+public/css/app.css           স্টাইলিং
+public/js/app.js             Axios হেল্পার ফাংশন
+```
+
+---
+
+<div align="center">
+
+🔗 **Live App:** [agriadvisory.app](http://agriadvisory.app)  ·  📦 **Repo:** [Agri_Advisory](https://github.com/Marjan15H/Agri_Advisory)
+
+Made with 💚 for Bangladeshi Farmers | CSE347 Project
+
+</div>
