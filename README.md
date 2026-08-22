@@ -22,38 +22,6 @@
 
 ---
 
-## 🚀 সেটআপ
-
-```bash
-cd laravel-backend
-composer install
-cp .env.example .env
-php artisan key:generate
-
-# MySQL-এ agri_advisory নামে একটি ডেটাবেজ তৈরি করুন (অথবা .env এডিট করুন), তারপর:
-php artisan migrate --seed
-
-# ../ml-service এ চলমান Flask ML সার্ভিসের সাথে কানেক্ট করুন
-# ML_SERVICE_URL ইতিমধ্যে .env.example এ সেট করা আছে
-
-php artisan serve   # ➜ http://localhost:8000
-```
-
----
-
-## 🔑 ডেমো অ্যাকাউন্ট (Seeder থেকে)
-
-<div align="center">
-
-| রোল | ইমেইল | পাসওয়ার্ড | স্ট্যাটাস |
-|:---:|---|:---:|:---:|
-| 🛡️ **Admin** | `admin@agriadvisory.test` | `password123` | ✅ Active |
-| 🌾 **Farmer** | `farmer@agriadvisory.test` | `password123` | ✅ Active |
-| 👨‍🌾 **Extension Officer** | `officer@agriadvisory.test` | `password123` | ✅ Active |
-| 🚚 **Supplier** | `supplier@agriadvisory.test` | `password123` | ✅ Pre-verified |
-
-</div>
-
 Seeder আরও তৈরি করে দেয়: **৬টি `climate_zones`** এবং **১৫টি `crops`** রেফারেন্স রো — ফসলের নামগুলো `ml-service/generate_data.py`-এর সাথে হুবহু মিলে যায়, ফলে `app/Models/Crop.php`-এর `Crop::findByNameOrCreate()` ML সার্ভিস থেকে আসা প্রতিটি ফসলের নামকে সরাসরি `crops.id`-তে রিজলভ করতে পারে।
 
 ---
