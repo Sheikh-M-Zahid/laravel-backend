@@ -56,7 +56,7 @@ class FarmerController extends Controller
 
         // Fetch Weather & Climate Zone Data use case: use the most recent
         // cached weather_logs row for this zone if present, else sensible defaults.
-        $weather = WeatherLog::where('zone_id', $profile->zone_id)->latest('fetched_at')->first();
+        $weather = app(WeatherService::class)->getForZone($profile->zone);
 
         $result = $ml->recommendCrop([
             'soil_ph' => (float) $profile->soil_ph,
