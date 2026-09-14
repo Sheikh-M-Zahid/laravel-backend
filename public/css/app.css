@@ -208,6 +208,18 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--wheat-gold)
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 @media (max-width: 800px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
+/* ---------- Mobile responsiveness ---------- */
+@media (max-width: 700px) {
+    .navbar { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 10px; row-gap: 8px; }
+    .navbar-links { flex-wrap: wrap; gap: 10px 16px; }
+    .navbar-user { font-size: 0.75rem; padding: 3px 10px; }
+    .container, .container-wide { padding-left: 14px; padding-right: 14px; }
+    .card { overflow-x: auto; }
+    .data-table { min-width: 480px; }
+    .inline-form { flex-wrap: wrap; }
+    .modal-box { padding: 20px; }
+}
+
 .alert { padding: 13px 18px; border-radius: var(--radius); margin-bottom: 18px; font-size: 0.92rem; }
 .alert-success { background: var(--field-green-pale); color: var(--field-green); border: 1px solid #BEDABF; }
 .alert-error { background: #FBE9E4; color: var(--danger); border: 1px solid #EAC3B7; }
