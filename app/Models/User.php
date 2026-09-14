@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
-    use Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = ['name', 'email', 'phone', 'password', 'role', 'status', 'profile_photo', 'restricted_until', 'removed_original_email', 'removed_at', 'is_admin', 'is_super_admin', 'admin_application_status', 'admin_applied_at'];
     protected $hidden = ['password', 'remember_token'];
