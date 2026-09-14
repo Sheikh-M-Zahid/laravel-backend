@@ -36,6 +36,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function review()
+    {
+        return $this->hasOne(SupplierReview::class);
+    }
+
     /** How much of this order's total is still unpaid. */
     public function getDueAmountAttribute(): float
     {
