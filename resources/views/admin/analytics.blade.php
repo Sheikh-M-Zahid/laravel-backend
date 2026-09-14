@@ -3,8 +3,19 @@
 @section('content')
 <h2>📊 Platform Analytics</h2>
 
+<div class="grid-2" style="align-items:start;">
+    <div class="card">
+        <h3>Crop Recommendation Distribution</h3>
+        <canvas id="cropChart" height="220"></canvas>
+    </div>
+    <div class="card">
+        <h3>Trend (last {{ $snapshots->count() }} snapshots)</h3>
+        <canvas id="trendChart" height="220"></canvas>
+    </div>
+</div>
+
 <div class="card">
-    <h3>Crop Recommendation Distribution</h3>
+    <h3>Crop Recommendation Distribution — table</h3>
     <table class="data-table">
         <thead><tr><th>Crop</th><th>Recommendations</th></tr></thead>
         <tbody>
@@ -33,4 +44,28 @@
         </tbody>
     </table>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('cropChart'), {
+    type: 'bar',
+    data: {
+        labels: @json($cropCounts->pluck('crop')),
+        datasets: [{ label: 'Recommendations', data: @json($cropCounts->pluck('total')), backgroundColor: '#4C7A3E' }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: @json($snapshots->reverse()->values()->pluck('snapshot_date')),
+        datasets: [
+            { label: 'Orders', data: @json($snapshots->reverse()->values()->pluck('total_orders')), borderColor: '#B98A2E', tension: 0.3 },
+            { label: 'Recommendations', data: @json($snapshots->reverse()->values()->pluck('total_recommendations')), borderColor: '#4C7A3E', tension: 0.3 }
+        ]
+    },
+    options: { responsive: true }
+});
+</script>
 @endsection
