@@ -14,4 +14,12 @@ mkdir -p /home/site/wwwroot/storage/app/public
 chmod -R 775 /home/site/wwwroot/storage
 chmod -R 775 /home/site/wwwroot/bootstrap/cache
 
+# Profile photos (and any other public upload) live in storage/app/public and
+# are served through the public/storage symlink -- `php artisan storage:link`
+# normally creates this, but Azure's filesystem doesn't reliably persist it
+# across restarts/deploys, so re-create it here on every boot if missing.
+if [ ! -e /home/site/wwwroot/public/storage ]; then
+    ln -s /home/site/wwwroot/storage/app/public /home/site/wwwroot/public/storage
+fi
+
 nginx -t && (pkill nginx; sleep 1; nginx)
