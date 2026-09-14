@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -29,6 +30,12 @@ class User extends Authenticatable
     public function isFoundingSuperAdmin(): bool
     {
         return in_array(strtolower($this->email), array_map('strtolower', config('super_admins.emails', [])), true);
+    }
+
+    /** Public URL for the uploaded profile photo, or null if none is set (view falls back to an initial-letter avatar). */
+    public function profilePhotoUrl(): ?string
+    {
+        return $this->profile_photo ? Storage::disk('public')->url($this->profile_photo) : null;
     }
 
     public function isFarmer(): bool { return $this->role === 'farmer'; }
