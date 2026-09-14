@@ -24,4 +24,16 @@ class Supplier extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(SupplierReview::class);
+    }
+
+    /** Average rating (1-5), rounded to 1 decimal, or null if no reviews yet. Uses the loaded `reviews` relation if eager-loaded, to avoid N+1 queries. */
+    public function getAvgRatingAttribute(): ?float
+    {
+        $avg = $this->relationLoaded('reviews') ? $this->reviews->avg('rating') : $this->reviews()->avg('rating');
+        return $avg ? round($avg, 1) : null;
+    }
 }
