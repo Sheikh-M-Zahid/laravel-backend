@@ -26,6 +26,12 @@ class WeatherService
             ?? WeatherLog::where('zone_id', $zone->id)->latest('fetched_at')->first();
     }
 
+    /** Force a fresh API fetch for one zone, bypassing the cache window (used by the weather:refresh scheduled command). */
+    public function refreshZone(ClimateZone $zone): ?WeatherLog
+    {
+        return $this->fetchAndStore($zone);
+    }
+
     protected function fetchAndStore(ClimateZone $zone): ?WeatherLog
     {
         $key = config('services.openweather.key');
