@@ -78,6 +78,19 @@ a { color: var(--field-green); }
     border-radius: 999px;
     font-size: 0.82rem;
     letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #EDE6D2;
+    text-decoration: none;
+}
+.navbar-user:hover { color: #fff; background: rgba(255,255,255,0.2); }
+.navbar-avatar, .navbar-avatar-fallback {
+    width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
+.navbar-avatar-fallback {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--wheat-gold); color: #3a2c05; font-weight: 700; font-size: 0.78rem;
 }
 .btn-link { background: none; border: none; color: #EDE6D2; text-decoration: underline; cursor: pointer; font-size: 0.9rem; }
 .btn-link:hover { color: #fff; }
@@ -218,6 +231,15 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--wheat-gold)
 .badge-rejected { background: #FBE9E4; color: var(--danger); padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
 .badge-pending { background: var(--wheat-gold-light); color: #7A5B10; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.profile-avatar-lg, .profile-avatar-fallback-lg {
+    width: 112px; height: 112px; border-radius: 50%; object-fit: cover;
+    margin: 0 auto; display: block; border: 3px solid var(--field-green-pale);
+}
+.profile-avatar-fallback-lg {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--wheat-gold); color: #3a2c05; font-weight: 700; font-size: 2.6rem;
+}
+.profile-photo-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .tag-list span { padding: 4px 12px; font-size: 0.8rem; }
 .inline-form { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .checkbox-label { display: flex; align-items: center; gap: 6px; font-weight: normal; }
