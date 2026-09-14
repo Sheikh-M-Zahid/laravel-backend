@@ -16,6 +16,7 @@
         <a href="{{ url('/') }}" class="navbar-brand">🌾 Agri-Advisory</a>
         <div class="navbar-links">
             <a href="{{ route('predictions') }}">What can it predict?</a>
+            <a href="{{ route('crop-calendar') }}">Crop Calendar</a>
             @auth
                 <a href="{{ route('hub') }}">Roles</a>
                 @if (auth()->user()->is_admin || auth()->user()->is_super_admin)
