@@ -6,6 +6,7 @@ use App\Models\AdminLog;
 use App\Models\AnalyticsSnapshot;
 use App\Models\ClimateZone;
 use App\Models\Crop;
+use App\Models\CropCalendar;
 use App\Models\ModelRetrainingJob;
 use App\Models\Order;
 use App\Models\Recommendation;
@@ -203,6 +204,23 @@ class AdminController extends Controller
         $this->log('create_crop', "Added crop: {$data['crop_name']}");
 
         return back()->with('status', 'Crop added.');
+    }
+
+    /** Manage the Crop Calendar (sowing/harvest windows per crop+zone) use case */
+    public function storeCropCalendar(Request $request)
+    {
+        $data = $request->validate([
+            'crop_id' => ['required', 'exists:crops,id'],
+            'zone_id' => ['required', 'exists:climate_zones,id'],
+            'sowing_start' => ['nullable', 'date'],
+            'sowing_end' => ['nullable', 'date'],
+            'harvest_start' => ['nullable', 'date'],
+            'harvest_end' => ['nullable', 'date'],
+        ]);
+        CropCalendar::create($data);
+        $this->log('create_crop_calendar', "Added crop calendar entry for crop #{$data['crop_id']} in zone #{$data['zone_id']}.");
+
+        return back()->with('status', 'Crop calendar entry added.');
     }
 
     /** Trigger ML Model Retraining use case */
