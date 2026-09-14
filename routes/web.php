@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExtensionOfficerController;
 use App\Http\Controllers\FarmerController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SuperAdminController;
 use App\Services\MlService;
@@ -71,6 +72,14 @@ Route::post('/apply-admin', [SuperAdminController::class, 'applyForAdmin'])->mid
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
     Route::post('/{notification}/read', [NotificationController::class, 'read'])->name('read');
     Route::post('/read-all', [NotificationController::class, 'readAll'])->name('read-all');
+});
+
+// ---------------- My Profile (any logged-in user, any role) ----------------
+Route::middleware('auth')->prefix('profile')->name('profile.')->group(function () {
+    Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+    Route::post('/', [ProfileController::class, 'update'])->name('update');
+    Route::post('/photo/remove', [ProfileController::class, 'removePhoto'])->name('photo.remove');
+    Route::post('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 });
 
 // ---------------- Farmer routes ----------------
