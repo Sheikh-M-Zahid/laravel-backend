@@ -21,14 +21,41 @@
             </div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;">
             <span class="badge-{{ $order->order_status === 'completed' ? 'verified' : ($order->order_status === 'cancelled' ? 'rejected' : 'pending') }}">
                 🚚 {{ $order->order_status === 'completed' ? 'Delivered' : ucfirst($order->order_status) }}
             </span>
             <span class="badge-{{ $order->payment_status === 'paid' ? 'verified' : ($order->payment_status === 'pending_verification' ? 'pending' : 'rejected') }}">
                 💰 {{ $order->payment_status === 'paid' ? 'Paid' : ($order->payment_status === 'pending_verification' ? 'Payment under review' : 'Unpaid') }}
             </span>
+            <a href="{{ route('farmer.orders.invoice', $order->id) }}" class="btn-link" style="font-size:0.85rem;">🧾 Download invoice</a>
         </div>
+
+        @if ($order->order_status === 'completed')
+            @if ($order->review)
+                <p class="hint" style="margin-top:10px;">You rated this order: {{ str_repeat('★', $order->review->rating) }}{{ str_repeat('☆', 5 - $order->review->rating) }}
+                    @if ($order->review->comment) — "{{ $order->review->comment }}" @endif
+                </p>
+            @else
+                <details style="margin-top:14px;">
+                    <summary>⭐ Rate {{ $order->supplier->business_name }}</summary>
+                    <form method="POST" action="{{ route('farmer.orders.review', $order->id) }}">
+                        @csrf
+                        <label>Rating</label>
+                        <select name="rating" required>
+                            <option value="5">★★★★★ Excellent</option>
+                            <option value="4">★★★★☆ Good</option>
+                            <option value="3">★★★☆☆ Average</option>
+                            <option value="2">★★☆☆☆ Poor</option>
+                            <option value="1">★☆☆☆☆ Very poor</option>
+                        </select>
+                        <label>Comment (optional)</label>
+                        <textarea name="comment" rows="2"></textarea>
+                        <button type="submit" class="btn-primary" style="margin-top:10px;">Submit rating</button>
+                    </form>
+                </details>
+            @endif
+        @endif
 
         @if ($order->due_amount > 0 && $order->payment_status !== 'pending_verification')
             <details style="margin-top:14px;">
