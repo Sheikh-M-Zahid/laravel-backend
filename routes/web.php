@@ -8,8 +8,11 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SuperAdminController;
+use App\Models\ClimateZone;
+use App\Models\CropCalendar;
 use App\Services\MlService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // ---------------- Home / Landing ----------------
@@ -43,25 +46,35 @@ Route::get('/predictions', function (MlService $ml) {
     return view('predictions', ['capabilities' => $ml->capabilities()]);
 })->name('predictions');
 
+// ---------------- Crop Calendar (public) — sowing/harvest windows per zone ----------------
+Route::get('/crop-calendar', function (Request $request) {
+    $zones = ClimateZone::orderBy('zone_name')->get();
+    $selectedZoneId = (int) $request->query('zone_id', $zones->first()->id ?? 0);
+    $entries = CropCalendar::with('crop')
+        ->when($selectedZoneId, fn ($q) => $q->where('zone_id', $selectedZoneId))
+        ->get();
+    return view('crop-calendar', compact('zones', 'entries', 'selectedZoneId'));
+})->name('crop-calendar');
+
 // ---------------- Guest routes ----------------
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1');
 
     // Email OTP verification (step 2 of registration)
     Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verify-email');
-    Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
-    Route::post('/verify-email/resend', [AuthController::class, 'resendVerifyEmail'])->name('verify-email.resend');
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:6,1');
+    Route::post('/verify-email/resend', [AuthController::class, 'resendVerifyEmail'])->name('verify-email.resend')->middleware('throttle:3,1');
 
     // Forgot / reset password via OTP
     Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'sendResetOtp'])->name('password.email');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetOtp'])->name('password.email')->middleware('throttle:3,1');
     Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->name('password.reset');
-    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-    Route::post('/reset-password/resend', [AuthController::class, 'resendResetOtp'])->name('password.resend');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update')->middleware('throttle:6,1');
+    Route::post('/reset-password/resend', [AuthController::class, 'resendResetOtp'])->name('password.resend')->middleware('throttle:3,1');
 });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
@@ -95,6 +108,10 @@ Route::middleware(['auth', 'role:farmer'])->prefix('farmer')->name('farmer.')->g
     Route::post('/orders', [FarmerController::class, 'placeOrder'])->name('orders.store');
     Route::get('/orders', [FarmerController::class, 'myOrders'])->name('orders');
     Route::post('/orders/{order}/pay', [FarmerController::class, 'submitPayment'])->name('orders.pay');
+    Route::get('/orders/{order}/invoice', [FarmerController::class, 'downloadInvoice'])->name('orders.invoice');
+    Route::post('/orders/{order}/review', [FarmerController::class, 'submitSupplierReview'])->name('orders.review');
+    Route::get('/trainings', [FarmerController::class, 'trainings'])->name('trainings');
+    Route::post('/trainings/{session}/register', [FarmerController::class, 'registerTraining'])->name('trainings.register');
     Route::post('/feedback', [FarmerController::class, 'sendFeedback'])->name('feedback.store');
 });
 
@@ -136,6 +153,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/activity', [AdminController::class, 'activityLog'])->name('activity');
     Route::post('/zones', [AdminController::class, 'storeZone'])->name('zones.store');
     Route::post('/crops', [AdminController::class, 'storeCrop'])->name('crops.store');
+    Route::post('/crop-calendar', [AdminController::class, 'storeCropCalendar'])->name('crop-calendar.store');
     Route::post('/retrain', [AdminController::class, 'triggerRetrain'])->name('retrain.trigger');
     Route::post('/backup', [AdminController::class, 'triggerBackup'])->name('backup.trigger');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
