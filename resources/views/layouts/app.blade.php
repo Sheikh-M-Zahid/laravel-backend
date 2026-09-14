@@ -58,7 +58,14 @@
                     </div>
                 </div>
 
-                <span class="navbar-user">{{ Auth::user()->name }} · {{ str_replace('_', ' ', Auth::user()->role) }}</span>
+                <a href="{{ route('profile.edit') }}" class="navbar-user">
+                    @if (Auth::user()->profile_photo)
+                        <img src="{{ Auth::user()->profilePhotoUrl() }}" alt="" class="navbar-avatar">
+                    @else
+                        <span class="navbar-avatar navbar-avatar-fallback">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                    @endif
+                    {{ Auth::user()->name }} · {{ str_replace('_', ' ', Auth::user()->role) }}
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="btn-link">Log out</button>
