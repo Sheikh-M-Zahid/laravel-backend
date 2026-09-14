@@ -67,6 +67,12 @@
         <p>Currently {{ $crops->count() }} crops in the reference data.</p>
         <span class="action-cta">Open →</span>
     </button>
+    <button type="button" class="action-tile" onclick="openModal('modal-crop-calendar')">
+        <span class="action-icon">📅</span>
+        <h4>Add Crop Calendar Entry</h4>
+        <p>Set sowing/harvest windows for a crop in a zone.</p>
+        <span class="action-cta">Open →</span>
+    </button>
     <button type="button" class="action-tile" onclick="openModal('modal-retrain')">
         <span class="action-icon">🔄</span>
         <h4>Retrain an ML Model</h4>
@@ -144,6 +150,36 @@
             <label>Description</label><textarea name="description" rows="2"></textarea>
             <button type="submit" class="btn-primary btn-block" style="margin-top:14px;">Add crop</button>
         </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-crop-calendar">
+    <div class="modal-box">
+        <button type="button" class="modal-close" onclick="closeModal('modal-crop-calendar')">&times;</button>
+        <h3>📅 Add a Crop Calendar Entry</h3>
+        <form method="POST" action="{{ route('admin.crop-calendar.store') }}">
+            @csrf
+            <label>Crop</label>
+            <select name="crop_id" required>
+                @foreach ($crops as $crop)
+                    <option value="{{ $crop->id }}">{{ $crop->crop_name }}</option>
+                @endforeach
+            </select>
+            <label>Climate zone</label>
+            <select name="zone_id" required>
+                @foreach ($zones as $zone)
+                    <option value="{{ $zone->id }}">{{ $zone->zone_name }} ({{ $zone->region }})</option>
+                @endforeach
+            </select>
+            <div class="grid-2">
+                <div><label>Sowing start</label><input type="date" name="sowing_start"></div>
+                <div><label>Sowing end</label><input type="date" name="sowing_end"></div>
+                <div><label>Harvest start</label><input type="date" name="harvest_start"></div>
+                <div><label>Harvest end</label><input type="date" name="harvest_end"></div>
+            </div>
+            <button type="submit" class="btn-primary btn-block" style="margin-top:14px;">Add calendar entry</button>
+        </form>
+        <p class="hint" style="margin-top:10px;">Farmers can see all entries on the public <a href="{{ route('crop-calendar') }}">Crop Calendar</a> page.</p>
     </div>
 </div>
 
