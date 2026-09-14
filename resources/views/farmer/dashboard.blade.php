@@ -75,6 +75,7 @@
 <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
     <a href="{{ route('farmer.marketplace') }}" class="btn-primary" style="text-decoration:none; text-align:center;">🛒 Browse the input marketplace</a>
     <a href="{{ route('farmer.orders') }}" class="btn-secondary" style="text-decoration:none; text-align:center;">📦 View my orders</a>
+    <a href="{{ route('farmer.trainings') }}" class="btn-secondary" style="text-decoration:none; text-align:center;">📅 Training sessions</a>
 </div>
 
 {{-- ============ MODALS ============ --}}
