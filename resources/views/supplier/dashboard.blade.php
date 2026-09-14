@@ -11,6 +11,10 @@
 
 <h2>🏪 Supplier Dashboard</h2>
 
+@if ($supplier?->avg_rating)
+    <p class="muted">Your rating: <span class="mono">{{ str_repeat('★', round($supplier->avg_rating)) }}{{ str_repeat('☆', 5 - round($supplier->avg_rating)) }}</span> {{ $supplier->avg_rating }}/5 ({{ $supplier->reviews()->count() }} review{{ $supplier->reviews()->count() === 1 ? '' : 's' }})</p>
+@endif
+
 @unless ($supplier?->verified)
     <div class="alert alert-error">Your supplier account hasn't been verified by an admin yet.</div>
 @endunless
