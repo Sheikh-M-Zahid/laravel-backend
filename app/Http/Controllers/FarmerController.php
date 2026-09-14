@@ -13,6 +13,10 @@ use App\Models\PriceForecast;
 use App\Models\Product;
 use App\Models\Recommendation;
 use App\Models\RecommendationFeedback;
+use App\Models\SupplierReview;
+use App\Models\TrainingAttendee;
+use App\Models\TrainingSession;
+use App\Services\BrevoMailService;
 use App\Services\MlService;
 use App\Services\WeatherService;
 use Illuminate\Http\Request;
@@ -174,13 +178,13 @@ class FarmerController extends Controller
     }
 
     /** Order Input from Supplier use case */
-    public function placeOrder(Request $request)
+    public function placeOrder(Request $request, BrevoMailService $brevo)
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
-        $product = Product::findOrFail($data['product_id']);
+        $product = Product::with('supplier')->findOrFail($data['product_id']);
 
         $order = Order::create([
             'farmer_id' => Auth::id(),
@@ -195,6 +199,16 @@ class FarmerController extends Controller
             'quantity' => $data['quantity'],
             'unit_price' => $product->price,
         ]);
+
+        // Let the supplier know a new order came in (email + navbar bell).
+        $brevo->notifyUser(
+            $product->supplier->user,
+            "New order received — Smart Agri-Advisory Platform",
+            "New order #{$order->id} from " . Auth::user()->name,
+            "<p>{$data['quantity']} × {$product->product_name} — total ৳{$order->total_amount}.</p>",
+            'View my orders',
+            route('supplier.my-orders')
+        );
 
         return back()->with('status', 'Order placed with ' . $product->supplier->business_name);
     }
@@ -218,9 +232,17 @@ class FarmerController extends Controller
         return back()->with('status', 'Feedback submitted. Your Extension Officer may follow up.');
     }
 
-    public function marketplace()
+    /** Input Marketplace — with search (by name) and category filter, paginated. */
+    public function marketplace(Request $request)
     {
-        $items = Product::with('supplier')->where('stock_quantity', '>', 0)->latest()->get();
+        $items = Product::with(['supplier', 'supplier.reviews'])
+            ->where('stock_quantity', '>', 0)
+            ->when($request->filled('q'), fn ($q) => $q->where('product_name', 'like', '%' . $request->query('q') . '%'))
+            ->when($request->filled('category'), fn ($q) => $q->where('category', $request->query('category')))
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
         return view('farmer.marketplace', compact('items'));
     }
 
@@ -228,7 +250,7 @@ class FarmerController extends Controller
     public function myOrders()
     {
         $orders = Order::where('farmer_id', Auth::id())
-            ->with(['supplier', 'items.product'])
+            ->with(['supplier', 'items.product', 'review'])
             ->latest()->get();
         return view('farmer.orders', compact('orders'));
     }
@@ -253,5 +275,65 @@ class FarmerController extends Controller
         ]);
 
         return back()->with('status', 'Payment submitted. The supplier will verify your TrxID and confirm.');
+    }
+
+    /** Upcoming training sessions in the farmer's zone(s), with a Register button. */
+    public function trainings()
+    {
+        $zoneIds = Auth::user()->farmProfiles()->pluck('zone_id')->unique();
+
+        $sessions = TrainingSession::with('zone', 'officer')
+            ->when($zoneIds->isNotEmpty(), fn ($q) => $q->whereIn('zone_id', $zoneIds))
+            ->orderBy('session_date')
+            ->get();
+
+        $registeredSessionIds = TrainingAttendee::where('farmer_id', Auth::id())->pluck('session_id');
+
+        return view('farmer.trainings', compact('sessions', 'registeredSessionIds'));
+    }
+
+    /** Register for Training Session use case */
+    public function registerTraining(TrainingSession $session)
+    {
+        TrainingAttendee::firstOrCreate(
+            ['session_id' => $session->id, 'farmer_id' => Auth::id()],
+            ['status' => 'registered']
+        );
+
+        return back()->with('status', "Registered for \"{$session->title}\".");
+    }
+
+    /** Download a PDF invoice/receipt for one of the farmer's own orders. */
+    public function downloadInvoice(Order $order)
+    {
+        abort_unless($order->farmer_id === Auth::id(), 403);
+        $order->load(['supplier', 'items.product']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.order', compact('order'));
+
+        return $pdf->download("invoice-order-{$order->id}.pdf");
+    }
+
+    /** Rate a Supplier use case — one review per completed order. */
+    public function submitSupplierReview(Request $request, Order $order)
+    {
+        abort_unless($order->farmer_id === Auth::id(), 403);
+        abort_unless($order->order_status === 'completed', 400, 'You can only review completed orders.');
+        abort_if($order->review()->exists(), 400, 'You already reviewed this order.');
+
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string'],
+        ]);
+
+        SupplierReview::create([
+            'order_id' => $order->id,
+            'farmer_id' => Auth::id(),
+            'supplier_id' => $order->supplier_id,
+            'rating' => $data['rating'],
+            'comment' => $data['comment'] ?? null,
+        ]);
+
+        return back()->with('status', 'Thanks for rating your supplier!');
     }
 }
